@@ -10,6 +10,7 @@ import en from 'react-intl/locale-data/en';
 import fr from 'react-intl/locale-data/fr';
 import pt from 'react-intl/locale-data/pt';
 import es from 'react-intl/locale-data/es';
+import { SnackbarProvider } from 'notistack';
 import config from 'config'; // eslint-disable-line require-path-exists/exists
 import App from './App';
 import RootLocale from './RootLocale';
@@ -131,44 +132,46 @@ class Root extends Component {
         <RootLocale locale={locale} />
         <IntlProvider locale={locale} messages={translations[locale]}>
           <Provider store={store}>
-            <Router history={this.state.history} onUpdate={Root.logPageView}>
-              <Route path="/" component={App}>
-                <IndexRoute component={Team} />
-                <Route path="check/user/already-confirmed" component={UserAlreadyConfirmed} public />
-                <Route path="check/user/confirmed" component={UserConfirmed} public />
-                <Route path="check/user/unconfirmed" component={UserUnconfirmed} public />
-                <Route path="check/user/password-reset" component={UserPasswordReset} public />
-                <Route path="check/user/password-change" component={UserPasswordChange} public />
-                <Route path="check/user/tos" component={UserTos} public />
-                <Route path="check/forbidden" component={AccessDenied} public />
-                <Route path="check/404" component={NotFound} public />
+            <SnackbarProvider anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+              <Router history={this.state.history} onUpdate={Root.logPageView}>
+                <Route path="/" component={App}>
+                  <IndexRoute component={Team} />
+                  <Route path="check/user/already-confirmed" component={UserAlreadyConfirmed} public />
+                  <Route path="check/user/confirmed" component={UserConfirmed} public />
+                  <Route path="check/user/unconfirmed" component={UserUnconfirmed} public />
+                  <Route path="check/user/password-reset" component={UserPasswordReset} public />
+                  <Route path="check/user/password-change" component={UserPasswordChange} public />
+                  <Route path="check/user/tos" component={UserTos} public />
+                  <Route path="check/forbidden" component={AccessDenied} public />
+                  <Route path="check/404" component={NotFound} public />
 
-                <Route path="check/user/:userId" component={User} />
-                <Route path="check/me" component={Me} />
-                <Route path="check/me/edit" isEditing component={Me} />
-                <Route path="check/teams/new" component={AddTeamPage} />
-                <Route path="check/teams/find(/:slug)" component={AddTeamPage} />
-                <Route path="check/teams" component={Teams} />
-                <Route path="check/bot-garden" component={BotGarden} />
-                <Route path="check/bot/:botId" component={Bot} />
+                  <Route path="check/user/:userId" component={User} />
+                  <Route path="check/me" component={Me} />
+                  <Route path="check/me/edit" isEditing component={Me} />
+                  <Route path="check/teams/new" component={AddTeamPage} />
+                  <Route path="check/teams/find(/:slug)" component={AddTeamPage} />
+                  <Route path="check/teams" component={Teams} />
+                  <Route path="check/bot-garden" component={BotGarden} />
+                  <Route path="check/bot/:botId" component={Bot} />
 
-                <Route path=":team/medias/new" component={CreateProjectMedia} />
-                <Route path=":team/project/:projectId/media/:mediaId" component={ProjectMedia} public />
-                <Route path=":team/project/:projectId/media/:mediaId/embed" component={MediaEmbed} public />
-                <Route path=":team/project/:projectId/source/:sourceId" component={Source} public />
-                <Route path=":team/project/:projectId/source/:sourceId/edit" isEditing component={Source} />
-                <Route path=":team/join" component={JoinTeam} />
-                <Route path=":team/project/:projectId/edit" component={ProjectEdit} />
-                <Route path=":team/project/:projectId(/:query)" component={Project} public />
-                <Route path=":team/search(/:query)" component={Search} public />
-                <Route path=":team/trash(/:query)" component={Trash} />
-                <Route path=":team" component={Team} public />
-                <Route path=":team/edit" action="edit" component={Team} />
-                <Route path=":team/settings" action="settings" component={Team} />
+                  <Route path=":team/medias/new" component={CreateProjectMedia} />
+                  <Route path=":team/project/:projectId/media/:mediaId" component={ProjectMedia} public />
+                  <Route path=":team/project/:projectId/media/:mediaId/embed" component={MediaEmbed} public />
+                  <Route path=":team/project/:projectId/source/:sourceId" component={Source} public />
+                  <Route path=":team/project/:projectId/source/:sourceId/edit" isEditing component={Source} />
+                  <Route path=":team/join" component={JoinTeam} />
+                  <Route path=":team/project/:projectId/edit" component={ProjectEdit} />
+                  <Route path=":team/project/:projectId(/:query)" component={Project} public />
+                  <Route path=":team/search(/:query)" component={Search} public />
+                  <Route path=":team/trash(/:query)" component={Trash} />
+                  <Route path=":team" component={Team} public />
+                  <Route path=":team/edit" action="edit" component={Team} />
+                  <Route path=":team/settings" action="settings" component={Team} />
 
-                <Route path="*" component={NotFound} public />
-              </Route>
-            </Router>
+                  <Route path="*" component={NotFound} public />
+                </Route>
+              </Router>
+            </SnackbarProvider>
           </Provider>
         </IntlProvider>
       </div>

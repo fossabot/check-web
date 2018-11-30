@@ -1,7 +1,23 @@
+import React from 'react';
+import { FormattedMessage, defineMessages } from 'react-intl';
+import Button from '@material-ui/core/Button';
 import truncate from 'lodash.truncate';
 import LinkifyIt from 'linkify-it';
 import rtlDetect from 'rtl-detect';
 import { toArray } from 'react-emoji-render';
+import { white } from './styles/js/shared';
+
+const messages = defineMessages({
+  wrapper: {
+    id: 'helpers.wrapper',
+    defaultMessage:
+      'A server error occurred while {operation}. The server responded with: {message}. Please try again and contact the support team if the error persists.',
+  },
+  unknown: {
+    id: 'helpers.unknown',
+    defaultMessage: 'An unknown error ocurred while {operation}. Please try again and contact the support team if the error persists.',
+  },
+});
 
 /**
  * Functionally-pure sort: keeps the given array unchanged and returns sorted one.
@@ -177,15 +193,43 @@ function getFilters() {
 /**
  * Safely extract an error message from a transaction, with default fallback.
  */
-function getErrorMessage(transaction, defaultMessage) {
+function getErrorMessage({ operation, transaction, formatMessage }) {
   const error = transaction.getError();
-  let errorMessage = defaultMessage;
   const json = safelyParseJSON(error.source);
+
   if (json && json.error) {
-    errorMessage = json.error;
+    return formatMessage(messages.wrapper, { operation, message: json.error });
   }
-  return errorMessage;
+
+  return formatMessage(messages.unknown, { operation });
 }
+
+/**
+ * Formats message and enqueues Snackbar in notistack
+ */
+
+const snackNotify = ({
+  transaction,
+  operation,
+  enqueueSnackbar,
+  formatMessage,
+  config,
+}) => {
+  const defaultConfig = {
+    variant: 'error',
+    action: (
+      <Button style={{ color: white }} size="small">
+        <FormattedMessage id="helpers.snackAction" defaultMessage="Dismiss" />
+      </Button>
+    ),
+    autoHideDuration: 60000,
+  };
+
+  enqueueSnackbar(
+    getErrorMessage({ operation, transaction, formatMessage }),
+    Object.assign(defaultConfig, config),
+  );
+};
 
 /**
  * Safely convert emojis to Unicode characters.
@@ -215,4 +259,5 @@ export {
   getFilters,
   getErrorMessage,
   emojify,
+  snackNotify,
 };

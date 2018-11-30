@@ -1,0 +1,14 @@
+[
+  {
+    "id": "helpers.wrapper",
+    "defaultMessage": "A server error occurred while {operation}. The server responded with: {message}. Please try again and contact the support team if the error persists."
+  },
+  {
+    "id": "helpers.unknown",
+    "defaultMessage": "An unknown error ocurred while {operation}. Please try again and contact the support team if the error persists."
+  },
+  {
+    "id": "helpers.snackAction",
+    "defaultMessage": "Dismiss"
+  }
+]

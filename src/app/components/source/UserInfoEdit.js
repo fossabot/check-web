@@ -9,7 +9,9 @@ import TextField from 'material-ui/TextField';
 import MdCancel from 'react-icons/lib/md/cancel';
 import capitalize from 'lodash.capitalize';
 import LinkifyIt from 'linkify-it';
+import { withSnackbar } from 'notistack';
 import rtlDetect from 'rtl-detect';
+import * as EmailValidator from 'email-validator';
 import SourcePicture from './SourcePicture';
 import Message from '../Message';
 import UploadImage from '../UploadImage';
@@ -19,7 +21,7 @@ import UpdateSourceMutation from '../../relay/mutations/UpdateSourceMutation';
 import { updateUserNameEmail } from '../../relay/mutations/UpdateUserNameEmailMutation';
 import CreateAccountSourceMutation from '../../relay/mutations/CreateAccountSourceMutation';
 import DeleteAccountSourceMutation from '../../relay/mutations/DeleteAccountSourceMutation';
-import { safelyParseJSON } from '../../helpers';
+import { snackNotify, safelyParseJSON } from '../../helpers';
 import {
   StyledIconButton,
   Row,
@@ -59,9 +61,17 @@ const messages = defineMessages({
     id: 'userInfoEdit.editError',
     defaultMessage: 'Sorry, could not edit the source',
   },
+  editProfile: {
+    id: 'userInfoEdit.editProfileOperation',
+    defaultMessage: 'editing user profile',
+  },
   nameError: {
     id: 'userInfoEdit.nameError',
     defaultMessage: 'Name can\'t be blank',
+  },
+  emailError: {
+    id: 'userInfoEdit.emailError',
+    defaultMessage: 'Invalid email address',
   },
   addLinkLabel: {
     id: 'userInfoEdit.addLinkLabel',
@@ -74,13 +84,11 @@ const messages = defineMessages({
   },
   emailConfirmed: {
     id: 'userInfoEdit.emailConfirmed',
-    defaultMessage:
-      '✔ Address confirmed',
+    defaultMessage: '✔ Address confirmed',
   },
   emailPendingConfirm: {
     id: 'userInfoEdit.emailPendingConfirm',
-    defaultMessage:
-      '⚠ Confirmation pending',
+    defaultMessage: '⚠ Confirmation pending',
   },
   invalidLink: {
     id: 'userInfoEdit.invalidLink',
@@ -144,7 +152,12 @@ class UserInfoEdit extends React.Component {
       this.updateSource();
       this.updateUser();
       this.updateLinks();
-      this.setState({ hasFailure: false, message: null }, this.manageEditingState);
+      this.setState({
+        hasFailure: false,
+        message: null,
+        nameError: null,
+        emailError: null,
+      }, this.manageEditingState);
     }
   }
 
@@ -183,14 +196,15 @@ class UserInfoEdit extends React.Component {
   }
 
   fail(transaction, mutation) {
-    const error = transaction.getError();
-    let message = this.props.intl.formatMessage(messages.editError);
-    const json = safelyParseJSON(error.source);
-    if (json && json.error) {
-      message = json.error;
-    }
-    this.setState({ message, hasFailure: true });
+    this.setState({ hasFailure: true });
     this.removePendingMutation(mutation);
+
+    snackNotify({
+      transaction,
+      operation: this.props.intl.formatMessage(messages.editProfile),
+      enqueueSnackbar: this.props.enqueueSnackbar,
+      formatMessage: this.props.intl.formatMessage,
+    });
   }
 
   success(response, mutation) {
@@ -378,10 +392,18 @@ class UserInfoEdit extends React.Component {
 
   validateUser() {
     const form = document.forms['edit-source-form'];
+    const email = form.email.value.trim();
     if (!form.name.value.trim()) {
       this.setState({
         hasFailure: true,
-        message: this.props.intl.formatMessage(messages.nameError),
+        nameError: this.props.intl.formatMessage(messages.nameError),
+      }, this.manageEditingState);
+      return false;
+    }
+    if (email && !EmailValidator.validate(email)) {
+      this.setState({
+        hasFailure: true,
+        emailError: this.props.intl.formatMessage(messages.emailError),
       }, this.manageEditingState);
       return false;
     }
@@ -524,6 +546,7 @@ class UserInfoEdit extends React.Component {
                 defaultValue={user.name}
                 floatingLabelText={this.props.intl.formatMessage(messages.sourceName)}
                 style={{ width: '85%' }}
+                errorText={this.state.nameError}
               />
               <TextField
                 className="source__bio-input"
@@ -542,6 +565,7 @@ class UserInfoEdit extends React.Component {
                 defaultValue={user.unconfirmed_email || user.email}
                 floatingLabelText={this.props.intl.formatMessage(messages.userEmail)}
                 style={{ width: '85%' }}
+                errorText={this.state.emailError}
               />
               <StyledHelper>
                 {emailHelperText}
@@ -591,4 +615,4 @@ UserInfoEdit.contextTypes = {
   store: PropTypes.object,
 };
 
-export default injectIntl(UserInfoEdit);
+export default withSnackbar(injectIntl(UserInfoEdit));

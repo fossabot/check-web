@@ -24,8 +24,16 @@
     "defaultMessage": "Sorry, could not edit the source"
   },
   {
+    "id": "userInfoEdit.editProfileOperation",
+    "defaultMessage": "editing user profile"
+  },
+  {
     "id": "userInfoEdit.nameError",
     "defaultMessage": "Name can't be blank"
+  },
+  {
+    "id": "userInfoEdit.emailError",
+    "defaultMessage": "Invalid email address"
   },
   {
     "id": "userInfoEdit.addLinkLabel",
