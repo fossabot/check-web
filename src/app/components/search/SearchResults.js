@@ -103,6 +103,7 @@ class SearchResultsComponent extends React.Component {
 
     this.state = {
       selectedMedia: [],
+      subscribed: false,
     };
   }
 
@@ -129,7 +130,9 @@ class SearchResultsComponent extends React.Component {
   }
 
   componentWillUnmount() {
-    this.unsubscribe();
+    if (this.state.subscribed) {
+      this.unsubscribe();
+    }
   }
 
   onSelect(id) {
@@ -168,22 +171,36 @@ class SearchResultsComponent extends React.Component {
 
       pusher.unsubscribe(channel);
 
-      pusher.subscribe(channel).bind('media_updated', 'Search', (data) => {
+      pusher.subscribe(channel).bind('bulk_update_start', 'Search', (data, run) => {
+        if (run) {
+          this.props.relay.forceFetch();
+          return true;
+        }
+        return {
+          id: `search-${channel}`,
+          callback: this.props.relay.forceFetch,
+        };
+      });
+
+      pusher.subscribe(channel).bind('bulk_update_end', 'Search', (data, run) => {
+        if (run) {
+          this.props.relay.forceFetch();
+          return true;
+        }
+        return {
+          id: `search-${channel}`,
+          callback: this.props.relay.forceFetch,
+        };
+      });
+
+      pusher.subscribe(channel).bind('media_updated', 'Search', (data, run) => {
         const message = safelyParseJSON(data.message, {});
         const { currentUser } = this.currentContext();
         const currentUserId = currentUser ? currentUser.dbid : 0;
         const avatar = config.restBaseUrl.replace(/\/api.*/, '/images/bridge.png');
 
-        let content = null;
-        try {
-          content = message.quote || message.url || message.file.url;
-        } catch (e) {
-          content = null;
-        }
-
         // Notify other users that there is a new translation request
         if (
-          content &&
           message.class_name === 'translation_request' &&
           currentUserId !== message.user_id
         ) {
@@ -193,43 +210,27 @@ class SearchResultsComponent extends React.Component {
           );
           notify(
             this.props.intl.formatMessage(messages.newTranslationRequestNotification),
-            content,
+            '',
             url,
             avatar,
             '_self',
           );
-        } else if (
-          message.annotation_type === 'translation_status' &&
-          currentUserId !== message.annotator_id
-        ) {
-          // Notify other users that there is a new translation
-          let translated = false;
-          message.data.fields.forEach((field) => {
-            if (field.field_name === 'translation_status_status' && field.value === 'translated') {
-              translated = true;
-            }
-          });
-          if (translated) {
-            const url = window.location.pathname.replace(
-              /(^\/[^/]+\/project\/[0-9]+).*/,
-              `$1/media/${message.annotated_id}`,
-            );
-            notify(
-              this.props.intl.formatMessage(messages.newTranslationNotification),
-              this.props.intl.formatMessage(messages.newTranslationNotificationBody),
-              url,
-              avatar,
-              '_self',
-            );
-          }
         }
 
         if (this.currentContext().clientSessionId !== data.actor_session_id) {
-          this.props.relay.forceFetch();
-          return true;
+          if (run) {
+            this.props.relay.forceFetch();
+            return true;
+          }
+          return {
+            id: `search-${channel}`,
+            callback: this.props.relay.forceFetch,
+          };
         }
         return false;
       });
+
+      this.setState({ subscribed: true });
     }
   }
 
@@ -237,6 +238,7 @@ class SearchResultsComponent extends React.Component {
     const { pusher } = this.currentContext();
     if (pusher && this.props.search.pusher_channel) {
       pusher.unsubscribe(this.props.search.pusher_channel);
+      this.setState({ subscribed: false });
     }
   }
 
@@ -255,6 +257,7 @@ class SearchResultsComponent extends React.Component {
 
     const searchResults = SearchResultsComponent.mergeResults(medias, sources);
     const count = this.props.search ? this.props.search.number_of_results : 0;
+    const team = this.props.search.team || this.currentContext().team;
 
     const hasMore = (searchResults.length < count);
 
@@ -270,7 +273,6 @@ class SearchResultsComponent extends React.Component {
           resultsCount: count,
         });
 
-    const team = medias.length > 0 ? medias[0].node.team : this.currentContext().team;
 
     const isProject = /\/project\//.test(window.location.pathname);
 
@@ -317,7 +319,7 @@ class SearchResultsComponent extends React.Component {
       dense: item => (
         item.media ?
           <SmallMediaCard
-            media={item}
+            media={{ ...item, team }}
             selected={this.state.selectedMedia.indexOf(item.id) > -1}
             onSelect={this.onSelect.bind(this)}
             style={{ margin: units(3) }}
@@ -326,7 +328,7 @@ class SearchResultsComponent extends React.Component {
       list: item => (
         item.media ?
           <MediaDetail
-            media={item}
+            media={{ ...item, team }}
             condensed
             selected={this.state.selectedMedia.indexOf(item.id) > -1}
             onSelect={this.onSelect.bind(this)}

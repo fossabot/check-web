@@ -104,6 +104,10 @@ class CheckNetworkLayer extends Relay.DefaultNetworkLayer {
   sendQueries(requests: Array<Relay.RelayQueryRequest>): ?Promise<any> {
     return Promise.all(requests.map(request => (
       this._sendQuery(request).then((result) => {
+        if (config.pusherDebug) {
+          // eslint-disable-next-line no-console
+          console.log('%cSending request to backend ', 'font-weight: bold');
+        }
         const { history } = this._init;
         if (result.status === 404 && window.location.pathname !== '/check/404') {
           history.push('/check/not-found');

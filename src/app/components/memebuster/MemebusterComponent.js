@@ -151,14 +151,20 @@ class MemebusterComponent extends React.Component {
   subscribe() {
     const { pusher } = this.getContext();
     if (pusher) {
-      pusher.subscribe(this.props.media.pusher_channel).bind('media_updated', 'MemebusterComponent', (data) => {
+      pusher.subscribe(this.props.media.pusher_channel).bind('media_updated', 'MemebusterComponent', (data, run) => {
         const message = JSON.parse(data.message);
         if (
           message.annotation_type === 'memebuster' &&
           message.annotated_id === this.props.media.dbid
         ) {
-          this.props.relay.forceFetch();
-          return true;
+          if (run) {
+            this.props.relay.forceFetch();
+            return true;
+          }
+          return {
+            id: `memebuster-${this.props.media.dbid}`,
+            callback: this.props.relay.forceFetch,
+          };
         }
         return false;
       });
@@ -272,8 +278,8 @@ class MemebusterComponent extends React.Component {
     const annotation = this.getLastSaveAnnotation();
     const template = media.team.get_memebuster_template;
 
-    const saveDisabled = !can(media.permissions, 'create Dynamic') || !this.validate();
-    const publishDisabled = !can(media.permissions, 'update Status') || !this.validate();
+    const saveDisabled = !can(media.permissions, 'update ProjectMedia') || !this.validate();
+    const publishDisabled = !can(media.permissions, 'lock Annotation') || !this.validate();
 
     return (
       <PageTitle
