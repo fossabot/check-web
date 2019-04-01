@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { FormattedMessage, defineMessages, injectIntl, intlShape } from 'react-intl';
+import { FormattedMessage, injectIntl, intlShape } from 'react-intl';
 import Relay from 'react-relay/classic';
+import PropTypes from 'prop-types';
 import Popover from 'material-ui/Popover';
 import Checkbox from 'material-ui/Checkbox';
 import FlatButton from 'material-ui/FlatButton';
@@ -8,7 +9,9 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import styled from 'styled-components';
 import config from 'config'; // eslint-disable-line require-path-exists/exists
 import PageTitle from '../PageTitle';
+import MediaUtil from './MediaUtil';
 import PenderCard from '../PenderCard';
+import CheckContext from '../../CheckContext';
 import MediaRoute from '../../relay/MediaRoute';
 import RelayContainer from '../../relay/RelayContainer';
 import { FlexRow, units, black87, black54, alertRed } from '../../styles/js/shared';
@@ -56,13 +59,6 @@ const StyledPopover = styled(Popover)`
   }
 `;
 
-const messages = defineMessages({
-  preview: {
-    id: 'mediaEmbed.embedPreview',
-    defaultMessage: 'Embed preview',
-  },
-});
-
 class MediaEmbedComponent extends Component {
   constructor(props) {
     super(props);
@@ -83,6 +79,10 @@ class MediaEmbedComponent extends Component {
         showNotes: true,
       },
     };
+  }
+
+  getContext() {
+    return new CheckContext(this).getContextStore();
   }
 
   handleCustomizationMenuOpen(e) {
@@ -153,27 +153,21 @@ class MediaEmbedComponent extends Component {
   }
 
   render() {
-    let url = window.location.href.replace(/\/embed$/, '');
-    const parts = [];
-    if (!this.state.customizationOptions.showOpenTasks) {
-      parts.push('hide_open_tasks=1');
-    }
-    if (!this.state.customizationOptions.showTasks) {
-      parts.push('hide_tasks=1');
-    }
-    if (!this.state.customizationOptions.showNotes) {
-      parts.push('hide_notes=1');
-    }
-    if (parts.length > 0) {
-      url = `${url}?${parts.join('&')}`;
-    }
+    const url = window.location.href.replace(/\/embed$/, `?t=${new Date().getTime()}`);
 
+    const { media } = this.props;
+    const data = media.embed;
     const embedTag = `<script src="${config.penderUrl}/api/medias.js?url=${encodeURIComponent(url)}"></script>`;
-    const metadata = JSON.parse(this.props.media.metadata);
+    const metadata = JSON.parse(media.metadata);
     const shareUrl = metadata.embed_url;
 
     return (
-      <PageTitle title={this.props.intl.formatMessage(messages.preview)}>
+      <PageTitle
+        prefix={MediaUtil.title({ media }, data, this.props.intl)}
+        team={this.getContext().team}
+        skipTeam={false}
+        data-id={media.dbid}
+      >
         <div id="media-embed">
           <StyledPopover
             open={this.state.customizationMenuOpened}
@@ -297,11 +291,6 @@ class MediaEmbedComponent extends Component {
           </StyledPopover>
 
           <p id="media-embed__actions">
-            <FlatButton
-              id="media-embed__actions-customize"
-              onClick={this.handleCustomizationMenuOpen.bind(this)}
-              label={<FormattedMessage id="mediaEmbed.customize" defaultMessage="Customize" />}
-            />
             <CopyToClipboard text={embedTag} onCopy={this.handleCopyEmbedCode.bind(this)}>
               <FlatButton
                 id="media-embed__actions-copy"
@@ -349,7 +338,8 @@ const MediaEmbedContainer = Relay.createContainer(MediaEmbedComponent, {
       fragment on ProjectMedia {
         id,
         dbid,
-        metadata
+        metadata,
+        embed
       }
 `,
   },
@@ -372,6 +362,10 @@ MediaEmbed.propTypes = {
   // https://github.com/yannickcr/eslint-plugin-react/issues/1389
   // eslint-disable-next-line react/no-typos
   intl: intlShape.isRequired,
+};
+
+MediaEmbedComponent.contextTypes = {
+  store: PropTypes.object,
 };
 
 export default injectIntl(MediaEmbed);
