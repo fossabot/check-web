@@ -32,6 +32,9 @@ class ShortTextRespondTask extends React.Component {
     const state = {};
     state[e.target.name] = e.target.value;
     this.setState(state, this.canSubmit);
+    if (this.props.onChange) {
+      this.props.onChange(e.target.value);
+    }
   }
 
   handleCancel() {

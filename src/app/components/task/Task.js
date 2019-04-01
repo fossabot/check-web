@@ -79,6 +79,7 @@ class Task extends Component {
       message: null,
       editingResponse: false,
       editingAttribution: false,
+      updatedResponse: null,
     };
   }
 
@@ -150,7 +151,10 @@ class Task extends Component {
     }
   };
 
-  handleCancelEditResponse = () => this.setState({ editingResponse: false });
+  handleCancelEditResponse = () => this.setState({
+    editingResponse: false,
+    updatedResponse: null,
+  });
 
   handleSubmitResponse = (response) => {
     const { media, task } = this.props;
@@ -176,13 +180,17 @@ class Task extends Component {
     );
   };
 
-  handleUpdateResponse = (edited_response) => {
+  handleUpdateResponse = (editedResponse) => {
     const { media, task } = this.props;
 
-    const onSuccess = () => this.setState({ message: null, editingResponse: false });
+    const onSuccess = () => this.setState({
+      message: null,
+      editingResponse: false,
+      updatedResponse: null,
+    });
 
     const fields = {};
-    fields[`response_${task.type}`] = edited_response;
+    fields[`response_${task.type}`] = editedResponse;
 
     Relay.Store.commitUpdate(
       new UpdateDynamicMutation({
@@ -267,6 +275,8 @@ class Task extends Component {
     }
   }
 
+  handleChangeResponse = (updatedResponse) => { this.setState({ updatedResponse }); };
+
   renderTaskResponse(responseObj, response, by, byPictures, showEditIcon) {
     const { task } = this.props;
 
@@ -278,41 +288,46 @@ class Task extends Component {
           <form name={`edit-response-${this.state.editingResponse.id}`}>
             {task.type === 'free_text' ?
               <ShortTextRespondTask
-                response={editingResponseText}
+                response={this.state.updatedResponse || editingResponseText}
                 onSubmit={this.handleUpdateResponse}
                 onDismiss={this.handleCancelEditResponse}
+                onChange={this.handleChangeResponse}
               />
               : null}
             {task.type === 'geolocation' ?
               <GeolocationRespondTask
-                response={editingResponseText}
+                response={this.state.updatedResponse || editingResponseText}
                 onSubmit={this.handleUpdateResponse}
                 onDismiss={this.handleCancelEditResponse}
+                onChange={this.handleChangeResponse}
               />
               : null}
             {task.type === 'datetime' ?
               <DatetimeRespondTask
-                response={editingResponseText}
+                response={this.state.updatedResponse || editingResponseText}
                 onSubmit={this.handleUpdateResponse}
                 onDismiss={this.handleCancelEditResponse}
+                onChange={this.handleChangeResponse}
               />
               : null}
             {task.type === 'single_choice' ?
               <SingleChoiceTask
                 mode="edit_response"
-                response={editingResponseText}
+                response={this.state.updatedResponse || editingResponseText}
                 jsonoptions={task.jsonoptions}
                 onDismiss={this.handleCancelEditResponse}
                 onSubmit={this.handleUpdateResponse}
+                onChange={this.handleChangeResponse}
               />
               : null}
             {task.type === 'multiple_choice' ?
               <MultiSelectTask
                 mode="edit_response"
-                jsonresponse={editingResponseText}
+                jsonresponse={this.state.updatedResponse || editingResponseText}
                 jsonoptions={task.jsonoptions}
                 onDismiss={this.handleCancelEditResponse}
                 onSubmit={this.handleUpdateResponse}
+                onChange={this.handleChangeResponse}
               />
               : null}
           </form>
@@ -498,12 +513,18 @@ class Task extends Component {
                   <div className="task__response-inputs">
                     {task.type === 'free_text' ?
                       <ShortTextRespondTask
+                        response={this.state.updatedResponse}
                         onSubmit={this.handleSubmitResponse}
+                        onChange={this.handleChangeResponse}
+                        onDismiss={this.handleCancelEditResponse}
                       />
                       : null}
                     {task.type === 'geolocation' ?
                       <GeolocationRespondTask
+                        response={this.state.updatedResponse}
                         onSubmit={this.handleSubmitResponse}
+                        onChange={this.handleChangeResponse}
+                        onDismiss={this.handleCancelEditResponse}
                       /> : null}
                     {task.type === 'datetime' ?
                       <DatetimeRespondTask onSubmit={this.handleSubmitResponse} />
@@ -511,17 +532,21 @@ class Task extends Component {
                     {task.type === 'single_choice' ?
                       <SingleChoiceTask
                         mode="respond"
-                        response={response}
+                        response={this.state.updatedResponse}
                         jsonoptions={task.jsonoptions}
                         onSubmit={this.handleSubmitResponse}
+                        onChange={this.handleChangeResponse}
+                        onDismiss={this.handleCancelEditResponse}
                       />
                       : null}
                     {task.type === 'multiple_choice' ?
                       <MultiSelectTask
                         mode="respond"
-                        jsonresponse={response}
+                        jsonresponse={this.state.updatedResponse}
                         jsonoptions={task.jsonoptions}
                         onSubmit={this.handleSubmitResponse}
+                        onChange={this.handleChangeResponse}
+                        onDismiss={this.handleCancelEditResponse}
                       />
                       : null}
                   </div>
