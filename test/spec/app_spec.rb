@@ -2097,14 +2097,11 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       sleep 5
       expect(@driver.page_source.include?('Child Claim')).to be(true)
       wait_for_selector('.project-header__back-button').click
-      expand = wait_for_selector('.card-with-border > div > div > div + button')
       expect(@driver.page_source.include?('Child Claim')).to be(false)
-      expect(@driver.page_source.include?('1 related')).to be(false)
+      expand = wait_for_selector('.card-with-border > div > div > div + button')
       expand.click
       sleep 5
       expect(@driver.page_source.include?('Child Claim')).to be(true)
-      expect(@driver.page_source.include?('1 related')).to be(true)
-      sleep 5
     end
 
     it "should search map in geolocation task", bin3: true do
