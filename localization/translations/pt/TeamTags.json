@@ -1,8 +1,8 @@
 {
-  "teamTags.failUpdate": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e avise {supportEmail} se a condição persistir.",
-  "teamTags.failDelete": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e avise {supportEmail} se a condição persistir.",
-  "teamTags.failMove": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e avise {supportEmail} se a condição persistir.",
-  "teamTags.fail": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e avise {supportEmail} se a condição persistir.",
+  "teamTags.failUpdate": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e entre em contato com {supportEmail} se a condição persistir.",
+  "teamTags.failDelete": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e entre em contato com {supportEmail} se a condição persistir.",
+  "teamTags.failMove": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e entre em contato com {supportEmail} se a condição persistir.",
+  "teamTags.fail": "Desculpe, ocorreu um erro ao atualizar a tag. Por favor, tente novamente e entre em contato com {supportEmail} se a condição persistir.",
   "teamTags.editTag": "Editar tag",
   "teamTags.deleteTag": "Excluir tag",
   "teamTags.moveTag": "Mover para tags da equipe",
@@ -19,5 +19,5 @@
   "teamTags.addTag": "Adicionar tag",
   "teamTags.customTags": "Tags personalizadas",
   "teamTags.noCustomTags": "Nenhuma tag personalizada.",
-  "teamTags.confirmDeleteTitle": "Tem certeza que deseja apagar esta tag?"
+  "teamTags.confirmDeleteTitle": "Tem certeza que deseja excluir esta tag?"
 }

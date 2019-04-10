@@ -1,7 +1,6 @@
 {
   "createMedia.submitting": "Se trimite...",
-  "createMedia.error": "Ceva nu a funcționat corect! Serverul a returnat eroare cu codul {code}. Contactați un administrator de sistem.",
-  "createMedia.errorTitle": "Could not submit \"{title}\"",
-  "createMedia.addItem": "Add Item",
-  "createMedia.addNewItem": "Add new item"
+  "createMedia.error": "Ne pare rău, în timpul transmiterii elementului s-a produs o eroare. Vă rugăm să mai încercați odată și să contactați {supportEmail} dacă situația persistă.",
+  "createMedia.addItem": "Adaugă element",
+  "createMedia.addNewItem": "Adaugă un element nou"
 }

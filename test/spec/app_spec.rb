@@ -316,12 +316,14 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       expect(@driver.page_source.include?('Happy birthday Mick')).to be(true)
       wait_for_selector("search__open-dialog-button", :id).click
       wait_for_selector("//span[contains(text(), 'Sources')]", :xpath).click
+      wait_for_selector("search-query__submit-button", :id).click
       wait_for_selector("source-card", :class)
       expect(@driver.page_source.include?("The Who's official Twitter page")).to be(true)
       expect(@driver.page_source.include?('Happy birthday Mick')).to be(true)
       old = @driver.find_elements(:class, "medias__item").length
       wait_for_selector("search__open-dialog-button", :id).click
       wait_for_selector("//span[contains(text(), 'Media')]", :xpath).click
+      wait_for_selector("search-query__submit-button", :id).click
       wait_for_size_change(old, "medias__item", :class)
       @wait.until { @driver.page_source.include?('@thewho') }
       expect(@driver.page_source.include?("The Who's official Twitter page")).to be(true)
@@ -953,16 +955,16 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
     it "should flag media as a command", bin4: true do
       media_pg = api_create_team_project_and_claim_and_redirect_to_media_page
 
-      expect(media_pg.contains_string?('Flag')).to be(false)
+      expect(@driver.page_source.include?('Flag')).to be(false)
 
       media_pg.fill_input('#cmd-input', '/flag Spam')
       media_pg.element('#cmd-input').submit
       sleep 5
 
-      expect(media_pg.contains_string?('Flag')).to be(true)
+      expect(@driver.page_source.include?('Flag')).to be(true)
       media_pg.driver.navigate.refresh
-      media_pg.wait_for_element('.media')
-      expect(media_pg.contains_string?('Flag')).to be(true)
+      media_pg.wait_for_element('.annotations')
+      expect(@driver.page_source.include?('Flag')).to be(true)
     end
 
     it "should edit project", bin1: true do
@@ -1321,6 +1323,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       el.click
       el.send_keys "video"
       @driver.action.send_keys(:enter).perform
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 3 # due the load
       wait_for_selector("//span[contains(text(), '1 item')]",:xpath)
       current = wait_for_selector_list("medias__item", :class).length
@@ -1334,6 +1337,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       el.click
       el.send_keys "meedan"
       @driver.action.send_keys(:enter).perform
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 3 # due the load
       wait_for_selector("//span[contains(text(), '1 item')]",:xpath)
       current = wait_for_selector_list("medias__item", :class).length
@@ -1683,6 +1687,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       expect((@driver.current_url.to_s.match(/project/)).nil?).to be(true)
       wait_for_selector("search__open-dialog-button", :id).click
       wait_for_selector('.search-filter__project-chip').click
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 10
       expect((@driver.current_url.to_s.match(/project/)).nil?).to be(false)
       expect((@driver.title =~ /Project/).nil?).to be(false)
@@ -1698,6 +1703,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
 
       wait_for_selector("search__open-dialog-button", :id).click
       @driver.find_element(:xpath, "//span[contains(text(), 'Recent activity')]").click
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 10
       expect((@driver.current_url.to_s.match(/recent_activity/)).nil?).to be(false)
       expect((@driver.current_url.to_s.match(/recent_added/)).nil?).to be(true)
@@ -1705,6 +1711,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
 
       wait_for_selector("search__open-dialog-button", :id).click
       @driver.find_element(:xpath, "//span[contains(text(), 'Created')]").click
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 10
       expect((@driver.current_url.to_s.match(/recent_activity/)).nil?).to be(true)
       expect((@driver.current_url.to_s.match(/recent_added/)).nil?).to be(false)
@@ -1717,6 +1724,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
 
       wait_for_selector("search__open-dialog-button", :id).click
       @driver.find_element(:xpath, "//span[contains(text(), 'Newest')]").click
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 10
       expect((@driver.current_url.to_s.match(/DESC/)).nil?).to be(false)
       expect((@driver.current_url.to_s.match(/ASC/)).nil?).to be(true)
@@ -1724,6 +1732,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
 
       wait_for_selector("search__open-dialog-button", :id).click
       @driver.find_element(:xpath, "//span[contains(text(), 'Oldest')]").click
+      wait_for_selector("search-query__submit-button", :id).click
       sleep 20
       expect((@driver.current_url.to_s.match(/DESC/)).nil?).to be(true)
       expect((@driver.current_url.to_s.match(/ASC/)).nil?).to be(false)
@@ -1790,7 +1799,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       expect(twitter_title == 'This is a test').to be(true)
     end
 
-    it "should embed bli", bin1: true do
+    it "should embed", bin1: true do
       api_create_team_project_and_claim_and_redirect_to_media_page
       sleep 2
       request_api('make_team_public', { slug: get_team })
@@ -1825,6 +1834,7 @@ shared_examples 'app' do |webdriver_url, browser_capabilities|
       sleep 3
       wait_for_selector("search__open-dialog-button", :id).click
       wait_for_selector("//span[contains(text(), 'Sources')]", :xpath, 100).click
+      wait_for_selector("search-query__submit-button", :id).click
       wait_for_selector("source-card", :class)
       results = @driver.find_elements(:css, '.medias__item')
       expect(results.size == 40).to be(true)

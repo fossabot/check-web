@@ -1,5 +1,7 @@
 {
-  "teamMenu.editTeam": "Edit team",
-  "teamMenu.teamSettings": "Team settings",
-  "teamMenu.trash": "View trash"
+  "teamMenu.listView": "List view",
+  "teamMenu.denseView": "Compact view",
+  "teamMenu.editTeam": "Редактировать группу",
+  "teamMenu.teamSettings": "Настройки группы",
+  "teamMenu.trash": "Открыть корзину"
 }

@@ -42,6 +42,49 @@ class UpdateTaskMutation extends Relay.Mutation {
     }`;
   }
 
+  getOptimisticResponse() {
+    if (this.props.operation === 'answer') {
+      const { task, user } = this.props;
+      const content = [];
+      Object.keys(task.fields).forEach((field) => {
+        content.push({
+          field_name: field,
+          value: task.fields[field],
+        });
+      });
+
+      return {
+        task: {
+          id: task.id,
+          assignments: {
+            edges: [],
+          },
+          first_response: {
+            permissions: '{}',
+            content: JSON.stringify(content),
+            attribution: {
+              edges: [
+                {
+                  node: {
+                    name: user ? user.name : '',
+                    source: {
+                      image: user ? user.profile_image : '',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      };
+    }
+    if (this.props.operation === 'update') {
+      const { task } = this.props;
+      return { task };
+    }
+    return {};
+  }
+
   getVariables() {
     const { task } = this.props;
     const params = { id: task.id };
@@ -58,6 +101,7 @@ class UpdateTaskMutation extends Relay.Mutation {
       params.label = task.label;
       params.description = task.description;
       params.required = task.required;
+      params.status = task.status;
       params.assigned_to_ids = task.assigned_to_ids;
     }
     return params;

@@ -8,6 +8,18 @@
     "defaultMessage": "Search"
   },
   {
+    "id": "search.applyFilters",
+    "defaultMessage": "Done"
+  },
+  {
+    "id": "search.cancel",
+    "defaultMessage": "Cancel"
+  },
+  {
+    "id": "search.reset",
+    "defaultMessage": "Reset"
+  },
+  {
     "id": "search.sortByOldest",
     "defaultMessage": "Oldest first"
   },

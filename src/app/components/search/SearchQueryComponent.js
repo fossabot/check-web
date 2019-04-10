@@ -8,7 +8,8 @@ import Popper from '@material-ui/core/Popper';
 import IconButton from '@material-ui/core/IconButton';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import ClearIcon from '@material-ui/icons/Clear';
-import isEqual from 'lodash.isequal';
+import FlatButton from 'material-ui/FlatButton';
+import deepEqual from 'deep-equal';
 import rtlDetect from 'rtl-detect';
 import styled from 'styled-components';
 import config from 'config'; // eslint-disable-line require-path-exists/exists
@@ -173,6 +174,18 @@ const messages = defineMessages({
     id: 'search.inputHint',
     defaultMessage: 'Search',
   },
+  applyFilters: {
+    id: 'search.applyFilters',
+    defaultMessage: 'Done',
+  },
+  cancel: {
+    id: 'search.cancel',
+    defaultMessage: 'Cancel',
+  },
+  reset: {
+    id: 'search.reset',
+    defaultMessage: 'Reset',
+  },
 });
 
 class SearchQueryComponent extends React.Component {
@@ -202,45 +215,38 @@ class SearchQueryComponent extends React.Component {
 
   componentWillReceiveProps() {
     const query = searchQueryFromUrl();
-    if (!isEqual(this.state.query, query)) {
+    if (!deepEqual(this.state.query, query)) {
       this.setState({ query });
     }
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const query = searchQueryFromUrl();
-    return !isEqual(this.state, nextState) ||
-           !isEqual(this.state.query, query);
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    const query = searchQueryFromUrl();
-    if (isEqual(this.state.query, query)) return;
-
-    const viewMode = this.props.view ? `/${this.props.view}` : '';
-
-    const url = urlFromSearchQuery(
-      prevState.query,
-      this.props.project
-        ? `/${this.props.team.slug}/project/${this.props.project.dbid}${viewMode}`
-        : `/${this.props.team.slug}/search`,
-    );
-
-    this.getContext().getContextStore().history.push(url);
   }
 
   getContext() {
     return new CheckContext(this);
   }
 
+  handleApplyFilters() {
+    const viewMode = this.props.view ? `/${this.props.view}` : '';
+
+    const url = urlFromSearchQuery(
+      this.state.query,
+      this.props.project
+        ? `/${this.props.team.slug}/project/${this.props.project.dbid}${viewMode}`
+        : `/${this.props.team.slug}/search${viewMode}`,
+    );
+
+    this.getContext().getContextStore().history.push(url);
+  }
+
   handleSubmit(e) {
     e.preventDefault();
-    const keywordInput = document.getElementById('search-input').value;
+    const field = document.getElementById('search-input');
+    field.blur();
+    const keywordInput = field.value;
 
     this.setState((prevState) => {
       const state = Object.assign({}, prevState);
       state.query.keyword = keywordInput;
-      return { query: state.query };
+      return { query: state.query, popper: { open: false } };
     });
   }
 
@@ -292,52 +298,51 @@ class SearchQueryComponent extends React.Component {
   }
 
   handleStatusClick(statusCode) {
-    this.setState((prevState) => {
-      const state = Object.assign({}, prevState);
-      const statusIsSelected = this.statusIsSelected(statusCode, state);
-      const selectedStatuses = state.query[statusKey] || []; // TODO Avoid ambiguous reference
+    const query = Object.assign({}, this.state.query);
+    const statusIsSelected = this.statusIsSelected(statusCode, this.state);
+    const selectedStatuses = query[statusKey] || []; // TODO Avoid ambiguous reference
 
-      if (statusIsSelected) {
-        selectedStatuses.splice(selectedStatuses.indexOf(statusCode), 1); // remove from array
-        if (!selectedStatuses.length) delete state.query[statusKey];
-      } else {
-        state.query[statusKey] = selectedStatuses.concat(statusCode);
+    if (statusIsSelected) {
+      selectedStatuses.splice(selectedStatuses.indexOf(statusCode), 1); // remove from array
+      if (!selectedStatuses.length) {
+        delete query[statusKey];
       }
-
-      return { query: state.query };
-    });
+    } else {
+      query[statusKey] = selectedStatuses.concat(statusCode);
+    }
+    this.setState({ query });
   }
 
   handleProjectClick(projectId) {
-    this.setState((prevState) => {
-      const state = Object.assign({}, prevState);
-      const projectIsSelected = this.projectIsSelected(projectId, state);
-      const selectedProjects = state.query.projects || [];
+    const query = Object.assign({}, this.state.query);
+    const projectIsSelected = this.projectIsSelected(projectId, this.state);
+    const selectedProjects = query.projects || [];
 
-      if (projectIsSelected) {
-        selectedProjects.splice(selectedProjects.indexOf(projectId), 1);
-        if (!selectedProjects.length) delete state.query.projects;
-      } else {
-        state.query.projects = selectedProjects.concat(projectId);
+    if (projectIsSelected) {
+      selectedProjects.splice(selectedProjects.indexOf(projectId), 1);
+      if (!selectedProjects.length) {
+        delete query.projects;
       }
-      return { query: state.query };
-    });
+    } else {
+      query.projects = selectedProjects.concat(projectId);
+    }
+    this.setState({ query });
   }
 
   handleTagClick(tag) {
-    this.setState((prevState) => {
-      const state = Object.assign({}, prevState);
-      const tagIsSelected = this.tagIsSelected(tag, state);
-      const selectedTags = state.query.tags || [];
+    const query = Object.assign({}, this.state.query);
+    const tagIsSelected = this.tagIsSelected(tag, this.state);
+    const selectedTags = query.tags || [];
 
-      if (tagIsSelected) {
-        selectedTags.splice(selectedTags.indexOf(tag), 1); // remove from array
-        if (!selectedTags.length) delete state.query.tags;
-      } else {
-        state.query.tags = selectedTags.concat(tag);
+    if (tagIsSelected) {
+      selectedTags.splice(selectedTags.indexOf(tag), 1); // remove from array
+      if (!selectedTags.length) {
+        delete query.tags;
       }
-      return { query: state.query };
-    });
+    } else {
+      query.tags = selectedTags.concat(tag);
+    }
+    this.setState({ query });
   }
 
   handleSortClick(sortParam) {
@@ -369,22 +374,26 @@ class SearchQueryComponent extends React.Component {
   }
 
   handleDynamicClick(field, value) {
-    this.setState((prevState) => {
-      const state = Object.assign({}, prevState);
-      if (!state.query.dynamic) {
-        state.query.dynamic = {};
-      }
-      if (!state.query.dynamic[field]) {
-        state.query.dynamic[field] = [];
-      }
-      const i = state.query.dynamic[field].indexOf(value);
-      if (i === -1) {
-        state.query.dynamic[field].push(value);
-      } else {
-        state.query.dynamic[field].splice(i, 1);
-      }
-      return { query: state.query };
-    });
+    const query = Object.assign({}, this.state.query);
+    if (!query.dynamic) {
+      query.dynamic = {};
+    }
+    if (!query.dynamic[field]) {
+      query.dynamic[field] = [];
+    }
+    const i = query.dynamic[field].indexOf(value);
+    if (i === -1) {
+      query.dynamic[field].push(value);
+    } else {
+      query.dynamic[field].splice(i, 1);
+    }
+    if (!query.dynamic[field].length) {
+      delete query.dynamic[field];
+    }
+    if (!Object.keys(query.dynamic).length) {
+      delete query.dynamic;
+    }
+    this.setState({ query });
   }
 
   handleDialogOpen = () => {
@@ -399,7 +408,9 @@ class SearchQueryComponent extends React.Component {
   };
 
   handleDialogClose = () => {
+    const query = searchQueryFromUrl();
     this.setState({
+      query,
       dialogOpen: false,
       popper: {
         open: false,
@@ -465,6 +476,20 @@ class SearchQueryComponent extends React.Component {
     this.setState({ popper: { open: false, allowed: false } });
   }
 
+  cancelFilters() {
+    const query = searchQueryFromUrl();
+    this.setState({ dialogOpen: false, query });
+  }
+
+  resetFilters() {
+    this.setState({ query: {} });
+  }
+
+  doneButtonDisabled() {
+    const query = searchQueryFromUrl();
+    return deepEqual(this.state.query, query);
+  }
+
   render() {
     const { team } = this.props;
     const { statuses } = teamStatuses(team);
@@ -488,7 +513,11 @@ class SearchQueryComponent extends React.Component {
           <FilterListIcon />
         </IconButton>
         <PageTitle prefix={title} skipTeam={false} team={this.props.team}>
-          <Dialog maxWidth="md" open={this.state.dialogOpen} onClose={this.handleDialogClose}>
+          <Dialog
+            maxWidth="md"
+            open={this.state.dialogOpen}
+            onClose={this.handleDialogClose}
+          >
             <DialogContent>
               <ContentColumn>
                 {this.showField('keyword') ?
@@ -505,6 +534,7 @@ class SearchQueryComponent extends React.Component {
                       defaultValue={this.state.query.keyword || ''}
                       isRtl={isRtl}
                       onChange={this.handleInputChange.bind(this)}
+                      onBlur={this.handleSubmit.bind(this)}
                       autofocus
                     />
                     <StyledPopper
@@ -747,6 +777,28 @@ class SearchQueryComponent extends React.Component {
                       );
                     }))
                     : null}
+
+                  <p style={{ textAlign: 'right' }}>
+                    <FlatButton
+                      id="search-query__cancel-button"
+                      label={this.props.intl.formatMessage(messages.cancel)}
+                      onClick={this.cancelFilters.bind(this)}
+                    />
+
+                    <FlatButton
+                      id="search-query__reset-button"
+                      label={this.props.intl.formatMessage(messages.reset)}
+                      onClick={this.resetFilters.bind(this)}
+                    />
+
+                    <FlatButton
+                      id="search-query__submit-button"
+                      label={this.props.intl.formatMessage(messages.applyFilters)}
+                      onClick={this.handleApplyFilters.bind(this)}
+                      disabled={this.doneButtonDisabled()}
+                      primary
+                    />
+                  </p>
                 </StyledSearchFiltersSection>
 
                 {this.props.addons}
