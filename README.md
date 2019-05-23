@@ -1,6 +1,7 @@
 # Check Web
 
 [![Travis](https://travis-ci.org/meedan/check-web.svg?branch=develop)](https://travis-ci.org/meedan/check-web/)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmeedan%2Fcheck-web.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmeedan%2Fcheck-web?ref=badge_shield)
 
 Verify breaking news online.
 
@@ -109,3 +110,7 @@ it("should do whatever my unit expects");
 
 * Run `npm install babel-register -g` if you face errors related to `babel-register`
 * Remove your `node_modules` directory if you face errors related to `npm install`
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmeedan%2Fcheck-web.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmeedan%2Fcheck-web?ref=badge_large)
